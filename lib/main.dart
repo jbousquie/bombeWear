@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-// https://filou.iut-rodez.fr/pointe/jbousqui/1703/wp5rwp7Cp8KewpvCp8Kt
-
 void main() {
   runApp(const MyApp());
 }
