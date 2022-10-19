@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
-// https://docs.flutter.dev/get-started/codelab
+// https://filou.iut-rodez.fr/pointe/jbousqui/1703/wp5rwp7Cp8KewpvCp8Kt
 
 void main() {
   runApp(const MyApp());
@@ -32,26 +33,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final myController = TextEditingController();
   Future<String>? _futurePointage;
+  String _urlText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _getURL();
+  }
+
+  @override
+  void dispose() {
+    myController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: SizedBox(child: buildColumn()));
-  }
-
-  Column buildColumn() {
-    List<Widget> children;
-    if (_futurePointage == null) {
-      children = [buildButton()];
-    } else {
-      children = [buildFutureBuilder(), buildButton()];
-    }
-    return Column(children: children);
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Center(child: buildContent()),
+      floatingActionButton: buildButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
   }
 
   FloatingActionButton buildButton() {
@@ -65,22 +74,59 @@ class _MyHomePageState extends State<MyHomePage> {
         });
   }
 
+  Widget buildContent() {
+    if (_futurePointage == null) {
+      _getURL();
+      myController.text = _urlText;
+      return TextField(
+        controller: myController,
+        keyboardType: TextInputType.url,
+        autofocus: true,
+        decoration: const InputDecoration(
+            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            isDense: true,
+            labelText: "URL Filou",
+            hintText: "Coller ici l'URL générée dans Filou"),
+        onSubmitted: (text) {
+          updateURL(text);
+        },
+      );
+      //return const Text('Badgeuse', style: TextStyle(fontSize: 48));
+    } else {
+      return buildFutureBuilder();
+    }
+  }
+
   FutureBuilder<String> buildFutureBuilder() {
     return FutureBuilder<String>(
         future: _futurePointage,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return Text('${snapshot.data}');
+            return Text('${snapshot.data}',
+                style: const TextStyle(fontSize: 32));
           } else if (snapshot.hasError) {
-            return Text('${snapshot.error}');
+            return Text('${snapshot.error}',
+                style: const TextStyle(fontSize: 32));
           }
           return const CircularProgressIndicator();
         });
   }
 
+  Future<void> updateURL(String text) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('urltext', text);
+    setState(() {
+      _urlText = text;
+    });
+  }
+
+  Future<void> _getURL() async {
+    final prefs = await SharedPreferences.getInstance();
+    _urlText = prefs.getString('urltext') ?? '';
+  }
+
   Future<String> pointe() async {
-    final uri = Uri.parse(
-        'https://filou.iut-rodez.fr/pointe/jbousqui/1703/wp5rwp7Cp8KewpvCp8Kt');
+    final uri = Uri.parse(_urlText);
     final response = await http.get(uri);
     if (response.statusCode == 200) {
       return response.body;
