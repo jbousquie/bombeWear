@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final myController = TextEditingController();
   Future<String>? _futurePointage;
   String _urlText = '';
+  bool _answered = true;
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.punch_clock_outlined),
         onPressed: () {
           setState(() {
+            _answered = false;
             _futurePointage = pointe();
           });
         });
@@ -89,7 +91,6 @@ class _MyHomePageState extends State<MyHomePage> {
           updateURL(text);
         },
       );
-      //return const Text('Badgeuse', style: TextStyle(fontSize: 48));
     } else {
       return buildFutureBuilder();
     }
@@ -99,12 +100,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return FutureBuilder<String>(
         future: _futurePointage,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.hasData && _answered) {
             return Text('${snapshot.data}',
-                style: const TextStyle(fontSize: 32));
+                style: const TextStyle(fontSize: 24));
           } else if (snapshot.hasError) {
             return Text('${snapshot.error}',
-                style: const TextStyle(fontSize: 32));
+                style: const TextStyle(fontSize: 24));
           }
           return const CircularProgressIndicator();
         });
@@ -127,6 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final uri = Uri.parse(_urlText);
     final response = await http.get(uri);
     if (response.statusCode == 200) {
+      _answered = true;
       return response.body;
     } else {
       throw Exception('échec accès http à Filou');
