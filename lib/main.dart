@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wear/wear.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,11 +14,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pointeuse',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Pointeuse UT1'),
+      home: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+              child: WatchShape(
+                builder: (BuildContext context, WearShape shape, Widget? child) {
+                  return Column(
+                    mainAxisAlignment:  MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Shape: ${shape == WearShape.round ? 'round' : 'square'}',
+                      ),
+                      child!
+                    ],
+                  );
+              },
+                child:  AmbientMode(
+                  builder: (BuildContext context, WearMode mode, Widget? child) {
+                    return Text(
+                      'Mode: ${mode == WearMode.active ? 'Active' : 'Ambient'}',
+                    );
+                  }
+                ),
+            )
+        )
+      )
     );
   }
 }
