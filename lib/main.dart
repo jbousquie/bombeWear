@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wear/wear.dart';
 
 void main() {
@@ -13,32 +13,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-              child: WatchShape(
-                builder: (BuildContext context, WearShape shape, Widget? child) {
-                  return Column(
-                    mainAxisAlignment:  MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'Shape: ${shape == WearShape.round ? 'round' : 'square'}',
-                      ),
-                      child!
-                    ],
-                  );
-              },
-                child:  AmbientMode(
-                  builder: (BuildContext context, WearMode mode, Widget? child) {
-                    return Text(
-                      'Mode: ${mode == WearMode.active ? 'Active' : 'Ambient'}',
-                    );
-                  }
-                ),
-            )
-        )
-      )
+    return const MaterialApp(
+      home: MyHomePage(title: 'Pointeuse UT1')
     );
   }
 }
@@ -52,15 +28,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final String _k = '/1703/';
   final myController = TextEditingController();
   Future<String>? _futurePointage;
-  String _urlText = '';
+  final String _usr = 'jbousqui';
+  late String _urlText;
+  final String _host = 'https://filou.iut-rodez.fr/pointe/';
   bool _answered = true;
 
   @override
   void initState() {
     super.initState();
-    _getURL();
+    const String cd = 'wp5rwp7Cp8KewpvCp8Kt';
+    _urlText = '$_host$_usr$_k$cd';
   }
 
   @override
@@ -73,18 +53,22 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(child: buildContent()),
-      floatingActionButton: buildButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
+    return
+      Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+              child: WatchShape(
+                builder: (BuildContext context, WearShape shape, Widget? child) {
+                  return buildContent();
+                }),
+              ),
+        floatingActionButton: buildButton(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      );
   }
 
   FloatingActionButton buildButton() {
-    return FloatingActionButton.large(
+    return FloatingActionButton(
         backgroundColor: Colors.green,
         child: const Icon(Icons.punch_clock_outlined),
         onPressed: () {
@@ -97,21 +81,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget buildContent() {
     if (_futurePointage == null) {
-      _getURL();
-      myController.text = _urlText;
-      return TextField(
-        controller: myController,
-        keyboardType: TextInputType.url,
-        autofocus: true,
-        decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            isDense: true,
-            labelText: "URL Filou",
-            hintText: "Coller ici l'URL générée dans Filou"),
-        onSubmitted: (text) {
-          updateURL(text);
-        },
-      );
+      return const Text('Badger',
+          style: TextStyle(fontSize: 24));
     } else {
       return buildFutureBuilder();
     }
@@ -123,27 +94,17 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (context, snapshot) {
           if (snapshot.hasData && _answered) {
             return Text('${snapshot.data}',
-                style: const TextStyle(fontSize: 24));
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18));
           } else if (snapshot.hasError) {
             return Text('${snapshot.error}',
-                style: const TextStyle(fontSize: 24));
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18));
           }
           return const CircularProgressIndicator();
         });
   }
 
-  Future<void> updateURL(String text) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('urltext', text);
-    setState(() {
-      _urlText = text;
-    });
-  }
-
-  Future<void> _getURL() async {
-    final prefs = await SharedPreferences.getInstance();
-    _urlText = prefs.getString('urltext') ?? '';
-  }
 
   Future<String> pointe() async {
     final uri = Uri.parse(_urlText);
